@@ -1,57 +1,5 @@
 /*
- * $Id: //websites/unixwiz/unixwiz.net/webroot/tools/lockrun.c#2 $
- *
- * written by :	Stephen J. Friedl
- *              Software Consultant
- *              steve@unixwiz.net
- *		http://www.unixwiz.net/tools/
- *
- *	===================================================================
- *	======== This software is in the public domain, and can be ========
- *	======== used by anybody for any purpose                   ========
- *	===================================================================
- *
- *	Lockrun: This program is used to launch a program out with a lockout
- *	so that only one can run at a time. It's mainly intended for use out
- *	of cron so that our five-minute running jobs which run long don't get
- *	walked on. We find this a *lot* with Cacti jobs which just get hung
- *	up: it's better to miss a polling period than to stack them up and
- *	slow each other down.
- *
- *	So we use a file which is used for locking: this program attempts to
- *	lock the file, and if the lock exists, we have to either exit with
- *	an error, or wait for it to release.
- *
- *		lockrun --lockfile=FILE -- my command here 
- *
- * COMMAND LINE
- * ------------
- *
- * --lockfile=F
- *
- *	Specify the name of a file which is used for locking. The file is
- *	created if necessary (with mode 0666), and no I/O of any kind is
- *	done. The file is never removed.
- *
- * --maxtime=N
- *
- *	The script being controlled should run for no more than <N> seconds,
- *	and if it's beyond that time, we should report it to the standard
- *	error (which probably gets routed to the user via cron's email).
- *
- * --wait
- *
- *	When a lock is hit, we normally exit with error, but --wait causes
- *	it to loop until the lock is released.
- *
- * --verbose
- *
- *	Show a bit more runtime debugging.
- *
- * --
- *
- *	Mark the end of the options: the command to run follows.
- *	
+ * See README.markdown for build, install, and usage instructions.
  */
 
 #include <stdio.h>
