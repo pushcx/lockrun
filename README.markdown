@@ -195,9 +195,9 @@ calling shell**. This is the case whether it's run from cron or not.
 History
 =======
 
-First published 2006-06-03 by Stephen J. Friedl. <http://unixwiz.net/archives/2006/06/new_tool_lockru.html>
-
-Uploaded to GitHub by Peter Harkins.
+ * 2009/06/25 — added lockf() support for Solaris 10 (thanks to Michal Bella)
+ * 2009/03/09 — Tracked on GitHub by Peter Harkins.
+ * 2006/06/03 — initial release by Stephen J. Friedl. <http://unixwiz.net/archives/2006/06/new_tool_lockru.html>
 
 License
 =======

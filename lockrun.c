@@ -39,6 +39,12 @@ static void die(const char *format, ...)
 		__attribute__((noreturn))
 		__attribute__((format(printf, 1, 2)));
 
+#ifdef __sun
+# define WAIT_AND_LOCK(fd) lockf(fd, F_TLOCK,0)
+#else
+# define WAIT_AND_LOCK(fd) flock(fd, LOCK_EX | LOCK_NB)
+#endif
+
 int main(int argc, char **argv)
 {
 	char	*Argv0 = *argv;
@@ -120,7 +126,7 @@ int main(int argc, char **argv)
 	if ( (lfd = open(lockfile, O_RDWR|O_CREAT, openmode)) < 0)
 		die("ERROR: cannot open(%s) [err=%s]", lockfile, strerror(errno));
 
-	while ( flock(lfd, LOCK_EX | LOCK_NB) != 0 )
+	while ( WAIT_AND_LOCK(lfd) != 0 )
 	{
 		if ( ! wait_for_lock )
 		{
