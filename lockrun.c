@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 		if ( ! wait_for_lock )
 		{
 			
-			if(idempotent) /* GROUPON: given the idempotent flag, we treat contention as a no-op */
+			if(idempotent) /* given the idempotent flag, we treat contention as a no-op */
 			{
 				exit(EXIT_SUCCESS);
 			}
