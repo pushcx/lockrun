@@ -32,6 +32,7 @@ static mode_t		openmode = 0666;
 static int		sleeptime = 10;		/* seconds */
 static int		Verbose = FALSE;
 static int		Maxtime  = 0;
+static int		idempotent = FALSE;
 
 static char *getarg(char *opt, char ***pargv);
 
@@ -96,6 +97,11 @@ int main(int argc, char **argv)
 		{
 			Verbose++;
 		}
+		
+		else if ( STRMATCH(arg, "-I") || STRMATCH(arg, "--idempotent"))
+		{
+			idempotent = TRUE;
+		}
 
 		else
 		{
@@ -130,7 +136,15 @@ int main(int argc, char **argv)
 	{
 		if ( ! wait_for_lock )
 		{
-			die("ERROR: cannot launch %s - run is locked", argv[0]);
+			
+			if(idempotent) /* given the idempotent flag, we treat contention as a no-op */
+			{
+				exit(EXIT_SUCCESS);
+			}
+			else
+			{
+				die("ERROR: cannot launch %s - run is locked", argv[0]);
+			}
 		}
 
 		/* waiting */

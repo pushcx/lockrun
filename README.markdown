@@ -163,6 +163,9 @@ We'll note that command-line redirection (`> /dev/null`, etc.) is not
 supported by this or the command which follows -- it's handled **by the
 calling shell**. This is the case whether it's run from cron or not.
 
+ * `--idempotent`
+
+  > Allows silent successful exit when lock contention is encountered.
 
  * `--lockfile=[filename]`
 
@@ -195,6 +198,7 @@ calling shell**. This is the case whether it's run from cron or not.
 History
 =======
 
+ * 2010/10/04 - added idempotency to allow run lock contention to be treated as a no-op (Mike Cerna, Groupon)
  * 2009/06/25 — added lockf() support for Solaris 10 (thanks to Michal Bella)
  * 2009/03/09 — Tracked on GitHub by Peter Harkins.
  * 2006/06/03 — initial release by Stephen J. Friedl. <http://unixwiz.net/archives/2006/06/new_tool_lockru.html>
