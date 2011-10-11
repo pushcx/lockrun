@@ -168,18 +168,21 @@ int main(int argc, char **argv)
 	{
 		time_t endtime;
 		pid_t  pid;
+		int    status;
 
 		if ( Verbose )
 		    printf("Waiting for process %ld\n", (long) childpid);
 
-		pid = waitpid(childpid, &rc, 0);
+		pid = waitpid(childpid, &status, 0);
+		rc = WEXITSTATUS(status);
 
 		time(&endtime);
 
 		endtime -= starttime;
 
 		if ( Verbose || (Maxtime > 0  &&  endtime > Maxtime) )
-		    printf("pid %d exited with status %d (time=%ld sec)\n", pid, rc, endtime);
+		    printf("pid %d exited with status %d, exit code: %d (time=%ld sec)\n",
+			   pid, status, rc, endtime);
 	}
 	else
 	{
