@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 	 * with error.
 	 */
 
-	if ( (lfd = open(lockfile, O_RDWR|O_CREAT, openmode)) < 0)
+	if ( (lfd = open(lockfile, O_RDWR|O_CREAT|O_TRUNC|O_SYNC, openmode)) < 0)
 		die("ERROR: cannot open(%s) [err=%s]", lockfile, strerror(errno));
 
 	while ( WAIT_AND_LOCK(lfd) != 0 )
@@ -169,6 +169,12 @@ int main(int argc, char **argv)
 		time_t endtime;
 		pid_t  pid;
 		int    status;
+		char   buffer[41];
+		int    size;
+
+		// write the childpid to the lockfile
+		size = snprintf(buffer, 40, "%ld", (long) childpid);
+		write(lfd, buffer, size);
 
 		if ( Verbose )
 		    printf("Waiting for process %ld\n", (long) childpid);
@@ -183,6 +189,9 @@ int main(int argc, char **argv)
 		if ( Verbose || (Maxtime > 0  &&  endtime > Maxtime) )
 		    printf("pid %d exited with status %d, exit code: %d (time=%ld sec)\n",
 			   pid, status, rc, endtime);
+
+		// remove the childpid from the lock file
+		ftruncate(lfd, 0);
 	}
 	else
 	{
