@@ -163,7 +163,10 @@ We'll note that command-line redirection (`> /dev/null`, etc.) is not
 supported by this or the command which follows -- it's handled **by the
 calling shell**. This is the case whether it's run from cron or not.
 
- * `--idempotent`
+ * `--help`
+  > Show brief help listing.
+
+ * `--quiet` or `--idempotent`
 
   > Allows silent successful exit when lock contention is encountered.
 
@@ -186,6 +189,9 @@ calling shell**. This is the case whether it's run from cron or not.
   > When a pre-existing lock is found, this program normally exits with
   > error, but adding the `--wait` parameter causes it to loop, waiting
   > for the prior lock to be released.
+
+ * `--retries=[N]`
+  > Attempt *N* retries in each wait loop.
 
  * `--verbose`
 
