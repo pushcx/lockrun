@@ -162,7 +162,8 @@ int main(int argc, char **argv)
 	{
 		close(lfd);		// don't need the lock file
 
-		execvp(argv[0], argv);
+		/* Set rc to the result of execvp. This lets the parent know we failed. */
+		rc = execvp(argv[0], argv);
 	}
 	else if ( childpid > 0 )
 	{
