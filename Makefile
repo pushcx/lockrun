@@ -1,4 +1,6 @@
 
+DESTDIR ?= $(PREFIX)
+
 lockrun:  
 	gcc $(CFLAGS) lockrun.c -o lockrun
 
