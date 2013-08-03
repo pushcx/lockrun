@@ -3,8 +3,10 @@ lockrun:
 	gcc $(CFLAGS) lockrun.c -o lockrun
 
 install: build
-	install -d $(DESTDIR)/usr/bin/ 
-	install ./lockrun $(DESTDIR)$(PREFIX)/usr/bin/
+	install -d $(bindir) 
+	install ./lockrun $(bindir)
+	install lockrun.1 $(man1dir)
+	gzip $(man1dir)/lockrun.1
 
 build: lockrun
 
