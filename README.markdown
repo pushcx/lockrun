@@ -198,6 +198,7 @@ calling shell**. This is the case whether it's run from cron or not.
 History
 =======
 
+ * 2013/08/02 - return execvp's value if running child process fails (Allard Hoeve)
  * 2010/10/04 - added idempotency to allow run lock contention to be treated as a no-op (Mike Cerna, Groupon)
  * 2009/06/25 — added lockf() support for Solaris 10 (thanks to Michal Bella)
  * 2009/03/09 — Tracked on GitHub by Peter Harkins.
