@@ -1,6 +1,6 @@
 
 SHELL = /bin/sh
-PREFIX ?= /usr/local/
+PREFIX ?= /usr/local
 
 prefix = $(PREFIX)
 exec_prefix = $(prefix)
@@ -15,10 +15,12 @@ lockrun:
 	gcc $(CFLAGS) lockrun.c -o lockrun
 
 install: build
-	install -d $(bindir) 
-	install ./lockrun $(bindir)
-	install lockrun.1 $(man1dir)
-	gzip $(man1dir)/lockrun.1
+	install -d $(DESTDIR)$(bindir) 
+	install ./lockrun $(DESTDIR)$(bindir)
+	
+	install -d $(DESTDIR)$(man1dir)
+	install lockrun.1 $(DESTDIR)$(man1dir)
+	gzip $(DESTDIR)$(man1dir)/lockrun.1
 
 build: lockrun
 
