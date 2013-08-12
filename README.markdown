@@ -1,5 +1,61 @@
-lockrun - Run cron job with overrun protection
+lockrun(1) - run cron job with overrun protection
 ==============================================
+
+## SYNOPSIS
+
+`lockrun` [-Q|--quiet] [-L lockfile-location] -- <command> <args>
+
+## DESCRIPTION
+
+Lockrun makes sure that the given command is executed only when the specified lockfile is not set.
+
+## OPTIONS
+
+`lockrun` supports GNU-style command-line options, and this includes
+using `--` to mark their end:
+
+    $ lockrun [options] -- [command]
+
+The actual command after `--` can have any arguments it likes, and they
+are entirely uninterpreted by `lockrun`.
+
+We'll note that command-line redirection (`> /dev/null`, etc.) is not
+supported by this or the command which follows -- it's handled **by the
+calling shell**. This is the case whether it's run from cron or not.
+
+ * `--idempotent`:
+
+    Allows silent successful exit when lock contention is encountered.
+
+ * `--lockfile=[filename]`
+
+    Specify the name of a file which is used for locking. This filename
+    is created if necessary (with mode 0666), and no I/O of any kind is
+    done. This file is never removed.
+
+ * `--maxtime=[N]`
+
+    The script being controlled ought to run for no more than *N*
+    seconds, and if it's beyond that time, we should report it to the
+    standard error stream (which probably gets routed to the user via
+    cron's email).
+
+
+ * `--wait`
+
+    When a pre-existing lock is found, this program normally exits with
+    error, but adding the `--wait` parameter causes it to loop, waiting
+    for the prior lock to be released.
+
+ * `--verbose`
+
+    Show a bit more runtime debugging.
+
+  * `--`
+
+    Mark the end of the options, the actual command to run follows.
+
+## RATIONALE
 
 When doing network monitoring, it's common to run a cron job every five
 minutes (the standard interval) to roam around the network gathering
@@ -20,8 +76,7 @@ Our response has been to create this tool, `lockrun`, which serves as a
 protective wrapper. Before launching the given command, it insures that
 another instance of the same command is not already running.
 
-Build and Install
-=================
+## BUILDING AND INSTALLING
 
 This tool is published in the form of portable C source code, and it can
 be compiled on any Linux/UNIX platform that provides a development
@@ -49,8 +104,7 @@ good or bad).
 
 We've also received a report that this works on Apple's OS X.
 
-Example Usage
-=============
+## EXAMPLES
 
 Once `lockrun` has been built and installed, it's time to put it
 to work. This is virtually always used in a crontab entry, and the
@@ -101,8 +155,7 @@ systems, and though `lockrun` may forestall a monitoring meltdown, it
 doesn't replace paying attention. It is **not** an advanced command
 queuing system.
 
-Locking Behavior
-================
+## LOCKING BEHAVIOUR
 
 We've been asked why we do this in a C program and not a simple shell
 script: the answer is that we require bulletproof, no-maintenance
@@ -147,53 +200,6 @@ the long-running process exists, it's impossible to predict which of the
 waiting processes will run next, and it's probably not going to be done
 in the order in which they were launched. Users with more sophisticated
 queuing requirements probably need to find a different mechanism.
-
-Command-Line Options
-====================
-
-`lockrun` supports GNU-style command-line options, and this includes
-using `--` to mark their end:
-
-    $ lockrun [options] -- [command]
-
-The actual command after `--` can have any arguments it likes, and they
-are entirely uninterpreted by `lockrun`.
-
-We'll note that command-line redirection (`> /dev/null`, etc.) is not
-supported by this or the command which follows -- it's handled **by the
-calling shell**. This is the case whether it's run from cron or not.
-
- * `--idempotent`
-
-  > Allows silent successful exit when lock contention is encountered.
-
- * `--lockfile=[filename]`
-
-  > Specify the name of a file which is used for locking. This filename
-  > is created if necessary (with mode 0666), and no I/O of any kind is
-  > done. This file is never removed.
-
- * `--maxtime=[N]`
-
-  > The script being controlled ought to run for no more than *N*
-  > seconds, and if it's beyond that time, we should report it to the
-  > standard error stream (which probably gets routed to the user via
-  > cron's email).
-
-
- * `--wait`
-
-  > When a pre-existing lock is found, this program normally exits with
-  > error, but adding the `--wait` parameter causes it to loop, waiting
-  > for the prior lock to be released.
-
- * `--verbose`
-
-  > Show a bit more runtime debugging.
-
-  * `--`
-
-  > Mark the end of the options, the actual command to run follows.
 
 History
 =======
