@@ -90,6 +90,12 @@ To build and install it from the command line:
 
 Now we'll find `lockrun` in the usual place: `/usr/bin/` or whatever you specify.
 
+To install the manpages, you need [ronn](https://github.com/rtomayko/ronn). To 
+install ronn on Debian, use `apt-get install ruby-ronn`. You can also use `gem
+install ronn`.
+
+## PORTING
+
 We'll note that though portable, this program is nevertheless designed
 only to run on UNIX or Linux systems: it certainly won't build and run
 properly on a Windows computer.
