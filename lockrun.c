@@ -14,6 +14,8 @@
 #include <sys/wait.h>
 #include <sys/file.h>
 
+static const char Version[] = "lockrun 1.1.2 - 2013-04-26 - steve@unixwiz.net";
+
 #ifndef __GNUC__
 # define __attribute__(x)	/* nothing */
 #endif
@@ -30,9 +32,10 @@ static const char	*lockfile = 0;
 static int		wait_for_lock = FALSE;
 static mode_t		openmode = 0666;
 static int		sleeptime = 10;		/* seconds */
+static int		retries = 0;
 static int		Verbose = FALSE;
 static int		Maxtime  = 0;
-static int		idempotent = FALSE;
+static int		Quiet = FALSE;
 
 static char *getarg(char *opt, char ***pargv);
 
@@ -40,11 +43,40 @@ static void die(const char *format, ...)
 		__attribute__((noreturn))
 		__attribute__((format(printf, 1, 2)));
 
-#ifdef __sun
+#ifdef F_TLOCK
 # define WAIT_AND_LOCK(fd) lockf(fd, F_TLOCK,0)
 #else
 # define WAIT_AND_LOCK(fd) flock(fd, LOCK_EX | LOCK_NB)
 #endif
+
+static const char *const helptext[] = {
+	"Usage: lockrun [options] -- command args...",
+	"",
+	"  --help        Show this brief help listing",
+	"  --version     Report the version info",
+	"  --            Mark the end of lockrun options; command follows",
+	"  --verbose     Show a bit more runtime debugging",
+	"    -V",
+	"  --idempotent  See --quiet",
+	"    -I",
+	"  --quiet       Exit quietly (and with success) if locked",
+	"    -q",
+	"  --lockfile=F  Specify lockfile as file <F>",
+	"    -L=F",
+	"  --wait        Wait for lockfile to appear (else exit on lock)",
+	"    -W",
+	"",
+	" Options with --wait:",
+	"",
+	"  --sleep=T     Sleep for <T> seconds on each wait loop",
+	"    -S=T",
+	"  --retries=N   Attempt <N> retries in each wait loop",
+	"    -R=N",
+	"  --maxtime=T   Wait for at most <T> seconds for a lock, then exit",
+	0,
+};
+
+static void show_help(const char *const *);
 
 int main(int argc, char **argv)
 {
@@ -53,6 +85,7 @@ int main(int argc, char **argv)
 	int	lfd;
 	pid_t	childpid;
 	time_t	starttime;
+	int	attempts = 0;
 
 	UNUSED_PARAMETER(argc);
 
@@ -73,7 +106,19 @@ int main(int argc, char **argv)
 
 		if (opt) *opt++ = '\0'; /* pick off the =VALUE part */
 
-		if ( STRMATCH(arg, "-L") || STRMATCH(arg, "--lockfile"))
+		if ( STRMATCH(arg, "--version") )
+		{
+			puts(Version);
+			exit(EXIT_SUCCESS);
+		}
+
+		else if ( STRMATCH(arg, "--help"))
+		{
+			show_help(helptext);
+			exit(EXIT_SUCCESS);
+		}
+
+		else if ( STRMATCH(arg, "-L") || STRMATCH(arg, "--lockfile"))
 		{
 			lockfile = getarg(opt, &argv);
 		}
@@ -88,6 +133,11 @@ int main(int argc, char **argv)
 			sleeptime = atoi(getarg(opt, &argv));
 		}
 
+		else if ( STRMATCH(arg, "-R") || STRMATCH(arg, "--retries"))
+		{
+			retries = atoi(getarg(opt, &argv));
+		}
+
 		else if ( STRMATCH(arg, "-T") || STRMATCH(arg, "--maxtime"))
 		{
 			Maxtime = atoi(getarg(opt, &argv));
@@ -97,10 +147,10 @@ int main(int argc, char **argv)
 		{
 			Verbose++;
 		}
-		
-		else if ( STRMATCH(arg, "-I") || STRMATCH(arg, "--idempotent"))
+
+		else if ( STRMATCH(arg, "-q") || STRMATCH(arg, "--quiet") || STRMATCH(arg, "-I") || STRMATCH(arg, "--idempotent"))
 		{
-			idempotent = TRUE;
+			Quiet = TRUE;
 		}
 
 		else
@@ -134,21 +184,23 @@ int main(int argc, char **argv)
 
 	while ( WAIT_AND_LOCK(lfd) != 0 )
 	{
+		attempts++;
+
 		if ( ! wait_for_lock )
 		{
-			
-			if(idempotent) /* given the idempotent flag, we treat contention as a no-op */
-			{
+			if ( Quiet)
 				exit(EXIT_SUCCESS);
-			}
 			else
-			{
 				die("ERROR: cannot launch %s - run is locked", argv[0]);
-			}
+		}
+
+		if ( retries > 0 && attempts >= retries )
+		{
+			die("ERROR: cannot launch %s - run is locked (after %d attempts)", argv[0], attempts);
 		}
 
 		/* waiting */
-		if ( Verbose ) printf("(locked: sleeping %d secs)\n", sleeptime);
+ 		if ( Verbose ) printf("(locked: sleeping %d secs, after attempt #%d)\n", sleeptime, attempts);
 
 		sleep(sleeptime);
 	}
@@ -160,13 +212,28 @@ int main(int argc, char **argv)
 
 	if ( (childpid = fork()) == 0 )
 	{
-		close(lfd);		// don't need the lock file
+		/* IN THE CHILD */
+
+		close(lfd);		/* don't need the lock file */
+
+		/* Make ourselves a process group leader so that this and all
+		 * child processes can be sent a signal as a group. This may
+		 * be used someday to support a --kill option, though this is
+		 * is still tricky.
+		 *
+		 * PORTING NOTE: if "setsid" is undefined on your platform,
+		 * just comment it out and send me an email with info about
+		 * the build environment.
+		 */
+		(void) setsid();
 
 		/* Set rc to the result of execvp. This lets the parent know we failed. */
 		rc = execvp(argv[0], argv);
 	}
 	else if ( childpid > 0 )
 	{
+		/* IN THE PARENT */
+
 		time_t endtime;
 		pid_t  pid;
 		int    status;
@@ -243,4 +310,15 @@ va_list	args;
 	va_end(args);
 
 	exit(EXIT_FAILURE);
+}
+
+static void show_help(const char * const *p)
+{
+	puts(Version);
+	puts("");
+
+	for ( ; *p; p++ )
+	{
+		puts(*p);
+	}
 }
