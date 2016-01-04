@@ -9,8 +9,8 @@ task :default => [:usage]
 task :help => [:usage]
 
 task :usage do
-  puts "rake deb:                  create an deb for lockrun"
-  puts "rake lockrun:              compile lockrun"
+  puts "rake deb:      Create an deb for lockrun"
+  puts "rake lockrun:  Compile lockrun"
   puts
   puts "You must gem install fpm to build deb files"
 end
